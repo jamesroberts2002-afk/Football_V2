@@ -188,7 +188,7 @@ else:
     if st.button("Generate teams"):
         selected_option, scores = generate_balanced_teams(players, team_size, history)
 
-        rankings_col, teams_col = st.columns([1, 1.2])
+        rankings_col, spacer_col, teams_col = st.columns([1, 0.15, 1.05])
 
         with rankings_col:
             st.subheader("🏅 Player rankings")
