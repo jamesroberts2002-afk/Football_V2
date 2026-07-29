@@ -6,10 +6,8 @@ import streamlit as st
 from supabase import create_client
 
 DEFAULT_PLAYERS = [
-    "Charlie", "Alasdair", "Joseph", "Dom", "Mo", "Harry", "Louis",
-    "James R", "Ellis", "Kieran", "Jon", "Oliver", "Dan M", "Danny",
 ]
-DEFAULT_TEAM_SIZE = 7
+DEFAULT_TEAM_SIZE = 6
 
 
 def init_connection():
