@@ -113,6 +113,7 @@ def team_card(title: str, team: list[str]):
             padding: 16px 18px;
             background: #FAFAFA;
             min-height: 180px;
+            text-align: center;
         ">
             <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
             <div style="font-size: 1.02rem; line-height: 1.7;">{players_html}</div>
