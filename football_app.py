@@ -105,7 +105,7 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
     return chosen, best_options, scores
 
 
-st.set_page_config(page_title="Football Team Generator", page_icon="⚽")
+st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
 st.title("Football Team Generator")
 
 history = load_history()
@@ -173,16 +173,19 @@ with st.sidebar:
                 save_results(cleaned)
                 load_history.clear()
                 st.session_state.results_editor_df = build_result_editor()
-                st.success("Results saved.")
+                st.success(f"Saved {len(cleaned)} results for {result_date.isoformat()}.")
                 st.rerun()
 
-st.subheader("History")
-st.dataframe(history, use_container_width=True)
+st.divider()
 
-if players:
-    if len(players) < team_size:
-        st.warning("The team size cannot be larger than the number of players.")
-    else:
+left, right = st.columns([1.2, 1])
+
+with left:
+    st.subheader("History")
+    st.dataframe(history, use_container_width=True)
+
+with right:
+    if players and len(players) >= team_size:
         selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
 
         st.subheader("Player rankings")
@@ -190,9 +193,16 @@ if players:
             {"Player": list(scores.keys()), "Score": list(scores.values())}
         ).sort_values("Score", ascending=False)
         st.dataframe(ranking_df, use_container_width=True)
+    elif players:
+        st.warning("The team size cannot be larger than the number of players.")
 
-        st.subheader("Chosen teams")
-        st.write(f"Team A: {list(selected_option['team_a'])}")
-        st.write(f"Team B: {list(selected_option['team_b'])}")
+st.divider()
+
+if players and len(players) >= team_size:
+    selected_option, _, _ = generate_balanced_teams(players, team_size, history)
+
+    st.subheader("Chosen teams")
+    st.write(f"Team A: {list(selected_option['team_a'])}")
+    st.write(f"Team B: {list(selected_option['team_b'])}")
 else:
     st.info("Add at least one player name to generate teams.")
