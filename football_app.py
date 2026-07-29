@@ -103,18 +103,18 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
     return chosen, scores
 
 
-def team_card(title: str, team: list[str], color: str):
+def team_card(title: str, team: list[str]):
     items = "".join(f"<li style='margin-bottom: 6px;'>{p}</li>" for p in team)
     st.markdown(
         f"""
         <div style="
-            border: 2px solid {color};
-            border-radius: 16px;
+            border: 1px solid #D9D9D9;
+            border-radius: 14px;
             padding: 16px 18px;
-            background: {color}12;
+            background: #FAFAFA;
             min-height: 180px;
         ">
-            <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
             <ul style="margin: 0; padding-left: 20px; font-size: 1.02rem;">{items}</ul>
         </div>
         """,
@@ -221,6 +221,6 @@ else:
 
             team_a_col, team_b_col = st.columns(2, gap="small")
             with team_a_col:
-                team_card("Team A", list(selected_option["team_a"]), "#2E8B57")
+                team_card("Team A", list(selected_option["team_a"]))
             with team_b_col:
-                team_card("Team B", list(selected_option["team_b"]), "#1F77B4")
+                team_card("Team B", list(selected_option["team_b"]))
