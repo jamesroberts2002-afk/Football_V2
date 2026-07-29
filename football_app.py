@@ -103,6 +103,25 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
     return chosen, scores
 
 
+def team_card(title: str, team: list[str], color: str):
+    items = "".join(f"<li style='margin-bottom: 6px;'>{p}</li>" for p in team)
+    st.markdown(
+        f"""
+        <div style="
+            border: 2px solid {color};
+            border-radius: 16px;
+            padding: 16px 18px;
+            background: {color}12;
+            min-height: 180px;
+        ">
+            <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 1.02rem;">{items}</ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
 st.title("⚽ Football Team Generator")
 
@@ -202,11 +221,6 @@ else:
 
             team_a_col, team_b_col = st.columns(2, gap="small")
             with team_a_col:
-                st.markdown("### Team A")
-                for player in selected_option["team_a"]:
-                    st.write(player)
-
+                team_card("Team A", list(selected_option["team_a"]), "#2E8B57")
             with team_b_col:
-                st.markdown("### Team B")
-                for player in selected_option["team_b"]:
-                    st.write(player)
+                team_card("Team B", list(selected_option["team_b"]), "#1F77B4")
