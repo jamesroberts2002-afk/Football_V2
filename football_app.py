@@ -104,7 +104,7 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
 
 
 def team_card(title: str, team: list[str]):
-    items = "".join(f"<li style='margin-bottom: 6px;'>{p}</li>" for p in team)
+    players_html = "<br>".join(team)
     st.markdown(
         f"""
         <div style="
@@ -115,7 +115,7 @@ def team_card(title: str, team: list[str]):
             min-height: 180px;
         ">
             <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
-            <ul style="margin: 0; padding-left: 20px; font-size: 1.02rem;">{items}</ul>
+            <div style="font-size: 1.02rem; line-height: 1.7;">{players_html}</div>
         </div>
         """,
         unsafe_allow_html=True,
