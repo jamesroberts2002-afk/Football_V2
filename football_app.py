@@ -162,7 +162,6 @@ with st.sidebar:
                 st.success("Results saved.")
                 st.rerun()
 
-# 1. History
 st.subheader("History")
 st.dataframe(history, use_container_width=True)
 
@@ -172,24 +171,14 @@ if players:
     else:
         selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
 
-        # 2. Player rankings
         st.subheader("Player rankings")
         ranking_df = pd.DataFrame(
             {"Player": list(scores.keys()), "Score": list(scores.values())}
         ).sort_values("Score", ascending=False)
         st.dataframe(ranking_df, use_container_width=True)
 
-        # 3. Chosen teams
         st.subheader("Chosen teams")
         st.write(f"Team A: {list(selected_option['team_a'])}")
         st.write(f"Team B: {list(selected_option['team_b'])}")
-
-        # 4. All team options
-        st.subheader("All team options")
-        if len(all_options) == 1:
-            st.write("Only one equally balanced split was found.")
-        else:
-            for i, option in enumerate(all_options, start=1):
-                st.write(f"{i}. Team A: {list(option['team_a'])} | Team B: {list(option['team_b'])}")
 else:
     st.info("Add at least one player name to generate teams.")
