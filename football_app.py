@@ -105,7 +105,6 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
 
 st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
 st.title("⚽ Football Team Generator")
-st.caption("Pick the players for the week, save the results, and generate balanced teams from the history.")
 
 history = load_history()
 
@@ -185,11 +184,9 @@ with left:
 
 with right:
     st.subheader("🏅 Player rankings")
+
     if players and len(players) >= team_size:
         if st.button("Generate teams"):
-            st.session_state.generate_teams = True
-
-        if st.session_state.get("generate_teams", False):
             selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
 
             ranking_df = pd.DataFrame(
@@ -204,8 +201,4 @@ with right:
         st.warning("The team size cannot be larger than the number of players.")
 
 st.divider()
-
-if players and len(players) >= team_size and st.session_state.get("generate_teams", False):
-    st.subheader("✅ Chosen teams")
-else:
-    st.info("Enter the players for this week, save results, then generate the teams.")
+st.info("Enter the players for this week, save results, then generate the teams.")
