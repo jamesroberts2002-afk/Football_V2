@@ -1,7 +1,6 @@
 import itertools
 import random
 
-import numpy as np
 import pandas as pd
 import streamlit as st
 from supabase import create_client
@@ -99,6 +98,9 @@ st.title("Football Team Generator")
 
 history = load_history()
 
+st.caption(f"Loaded {len(history)} history rows from Supabase.")
+st.dataframe(history, use_container_width=True)
+
 with st.sidebar:
     st.header("Setup")
 
@@ -161,9 +163,6 @@ with st.sidebar:
                 st.session_state.results_editor_df = build_result_editor()
                 st.success("Results saved.")
                 st.rerun()
-
-st.subheader("History")
-st.dataframe(history, use_container_width=True)
 
 if players:
     if len(players) < team_size:
