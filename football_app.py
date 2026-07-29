@@ -57,7 +57,7 @@ def build_result_editor() -> pd.DataFrame:
 
 
 def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[str, float]:
-    scores = {}
+    raw_scores = {}
 
     for player in players:
         player_results = history.loc[history["Player"] == player, "Result"].astype(str).str.upper()
@@ -66,11 +66,19 @@ def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[s
         total = wins + losses
 
         if total == 0:
-            scores[player] = 0.0
+            raw_scores[player] = None
         else:
             weight_const = max(1.0, float(len(players)))
             win_rate = wins / total
-            scores[player] = (wins + weight_const * win_rate) / (total + weight_const)
+            raw_scores[player] = (wins + weight_const * win_rate) / (total + weight_const)
+
+    known_scores = [v for v in raw_scores.values() if v is not None]
+    average_score = sum(known_scores) / len(known_scores) if known_scores else 0.0
+
+    scores = {
+        player: (score if score is not None else average_score)
+        for player, score in raw_scores.items()
+    }
 
     return scores
 
