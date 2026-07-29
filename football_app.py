@@ -103,6 +103,24 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
     return chosen, scores
 
 
+def team_box(title: str, team: list[str], color: str):
+    st.markdown(
+        f"""
+        <div style="
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 2px solid {color};
+            background: {color}15;
+            margin-bottom: 10px;
+        ">
+            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">{title}</div>
+            <div style="font-size: 1rem;">{', '.join(team)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
 st.title("⚽ Football Team Generator")
 
@@ -174,7 +192,7 @@ with st.sidebar:
                 st.rerun()
 
 st.subheader("📚 History")
-st.dataframe(history, use_container_width=True)
+st.dataframe(history, use_container_width=True, height=260)
 
 st.divider()
 
@@ -186,17 +204,18 @@ else:
     st.subheader("🏅 Generate teams")
 
     if st.button("Generate teams"):
-        st.session_state.generate_teams = True
-
-    if st.session_state.get("generate_teams", False):
         selected_option, scores = generate_balanced_teams(players, team_size, history)
 
         st.subheader("✅ Chosen teams")
-        st.write(f"Team A: {list(selected_option['team_a'])}")
-        st.write(f"Team B: {list(selected_option['team_b'])}")
+        col1, col2 = st.columns(2)
+        with col1:
+            team_box("Team A", list(selected_option["team_a"]), "#2E8B57")
+        with col2:
+            team_box("Team B", list(selected_option["team_b"]), "#1F77B4")
 
         st.subheader("🏅 Player rankings")
         ranking_df = pd.DataFrame(
             {"Player": list(scores.keys()), "Score": list(scores.values())}
         ).sort_values("Score", ascending=False)
-        st.dataframe(ranking_df, use_container_width=True)
+
+        st.dataframe(ranking_df, use_container_width=True, height=320)
