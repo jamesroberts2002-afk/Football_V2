@@ -65,7 +65,7 @@ def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[s
         if total == 0:
             scores[player] = 0.0
         else:
-            weight_const = max(1.0, float(len(history)) / max(1, len(players)))
+            weight_const = max(1.0, float(len(players)))
             win_rate = wins / total
             scores[player] = (wins + weight_const * win_rate) / (total + weight_const)
 
