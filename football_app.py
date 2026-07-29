@@ -183,7 +183,7 @@ if players and len(players) < team_size:
 elif not players:
     st.info("Enter the players for this week, save results, then generate the teams.")
 else:
-    st.subheader("🏅 Generate teams")
+    st.subheader("Generate teams")
 
     if st.button("Generate teams"):
         selected_option, scores = generate_balanced_teams(players, team_size, history)
@@ -198,9 +198,9 @@ else:
             st.dataframe(ranking_df, use_container_width=True, height=360)
 
         with teams_col:
-            st.subheader("✅ Chosen teams")
+            st.subheader("Chosen teams")
 
-            team_a_col, team_b_col = st.columns(2)
+            team_a_col, team_b_col = st.columns(2, gap="small")
             with team_a_col:
                 st.markdown("### Team A")
                 for player in selected_option["team_a"]:
