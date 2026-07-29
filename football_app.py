@@ -1,5 +1,6 @@
 import itertools
 import random
+from datetime import date
 
 import pandas as pd
 import streamlit as st
@@ -27,16 +28,18 @@ def load_history():
     data = response.data or []
 
     if not data:
-        return pd.DataFrame(columns=["Player", "Result"])
+        return pd.DataFrame(columns=["Date", "Player", "Result"])
 
     df = pd.DataFrame(data)
 
+    if "Date" not in df.columns:
+        df["Date"] = ""
     if "Player" not in df.columns:
         df["Player"] = ""
     if "Result" not in df.columns:
         df["Result"] = ""
 
-    return df[["Player", "Result"]].copy()
+    return df[["Date", "Player", "Result"]].copy()
 
 
 def save_results(results_df: pd.DataFrame) -> None:
@@ -120,6 +123,8 @@ with st.sidebar:
 
     st.subheader("Last week results")
 
+    result_date = st.date_input("Date", value=date.today())
+
     if "results_editor_df" not in st.session_state:
         st.session_state.results_editor_df = build_result_editor()
 
@@ -156,6 +161,7 @@ with st.sidebar:
             if cleaned.empty:
                 st.warning("No valid W/L rows to save.")
             else:
+                cleaned["Date"] = result_date.isoformat()
                 save_results(cleaned)
                 load_history.clear()
                 st.session_state.results_editor_df = build_result_editor()
