@@ -99,9 +99,6 @@ st.title("Football Team Generator")
 
 history = load_history()
 
-st.caption(f"Loaded {len(history)} history rows from Supabase.")
-st.dataframe(history, use_container_width=True)
-
 with st.sidebar:
     st.header("Setup")
 
@@ -165,30 +162,34 @@ with st.sidebar:
                 st.success("Results saved.")
                 st.rerun()
 
+# 1. History
+st.subheader("History")
+st.dataframe(history, use_container_width=True)
+
 if players:
     if len(players) < team_size:
         st.warning("The team size cannot be larger than the number of players.")
     else:
         selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
-        team_a = selected_option["team_a"]
-        team_b = selected_option["team_b"]
 
-        st.subheader("Balanced teams")
-        st.write("Selected balanced split")
-        st.write(f"Team A: {list(team_a)}")
-        st.write(f"Team B: {list(team_b)}")
+        # 2. Player rankings
+        st.subheader("Player rankings")
+        ranking_df = pd.DataFrame(
+            {"Player": list(scores.keys()), "Score": list(scores.values())}
+        ).sort_values("Score", ascending=False)
+        st.dataframe(ranking_df, use_container_width=True)
 
-        st.subheader("All equally balanced options")
+        # 3. Chosen teams
+        st.subheader("Chosen teams")
+        st.write(f"Team A: {list(selected_option['team_a'])}")
+        st.write(f"Team B: {list(selected_option['team_b'])}")
+
+        # 4. All team options
+        st.subheader("All team options")
         if len(all_options) == 1:
             st.write("Only one equally balanced split was found.")
         else:
             for i, option in enumerate(all_options, start=1):
                 st.write(f"{i}. Team A: {list(option['team_a'])} | Team B: {list(option['team_b'])}")
-
-        st.caption("Player rankings")
-        ranking_df = pd.DataFrame(
-            {"Player": list(scores.keys()), "Score": list(scores.values())}
-        ).sort_values("Score", ascending=False)
-        st.dataframe(ranking_df, use_container_width=True)
 else:
     st.info("Add at least one player name to generate teams.")
