@@ -75,12 +75,10 @@ def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[s
     known_scores = [v for v in raw_scores.values() if v is not None]
     average_score = sum(known_scores) / len(known_scores) if known_scores else 0.0
 
-    scores = {
+    return {
         player: (score if score is not None else average_score)
         for player, score in raw_scores.items()
     }
-
-    return scores
 
 
 def generate_balanced_teams(players: list[str], team_size: int, history: pd.DataFrame):
@@ -106,12 +104,13 @@ def generate_balanced_teams(players: list[str], team_size: int, history: pd.Data
 
 
 st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
-st.title("Football Team Generator")
+st.title("⚽ Football Team Generator")
+st.caption("Pick the players for the week, save the results, and generate balanced teams from the history.")
 
 history = load_history()
 
 with st.sidebar:
-    st.header("Setup")
+    st.header("🛠️ Setup")
 
     player_text = st.text_area(
         "Players (comma separated)",
@@ -129,7 +128,7 @@ with st.sidebar:
         step=1,
     )
 
-    st.subheader("Last week results")
+    st.subheader("📝 Last week results")
 
     result_date = st.date_input("Date", value=date.today())
 
@@ -181,28 +180,32 @@ st.divider()
 left, right = st.columns([1.2, 1])
 
 with left:
-    st.subheader("History")
+    st.subheader("📚 History")
     st.dataframe(history, use_container_width=True)
 
 with right:
+    st.subheader("🏅 Player rankings")
     if players and len(players) >= team_size:
-        selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
+        if st.button("Generate teams"):
+            st.session_state.generate_teams = True
 
-        st.subheader("Player rankings")
-        ranking_df = pd.DataFrame(
-            {"Player": list(scores.keys()), "Score": list(scores.values())}
-        ).sort_values("Score", ascending=False)
-        st.dataframe(ranking_df, use_container_width=True)
+        if st.session_state.get("generate_teams", False):
+            selected_option, all_options, scores = generate_balanced_teams(players, team_size, history)
+
+            ranking_df = pd.DataFrame(
+                {"Player": list(scores.keys()), "Score": list(scores.values())}
+            ).sort_values("Score", ascending=False)
+            st.dataframe(ranking_df, use_container_width=True)
+
+            st.subheader("✅ Chosen teams")
+            st.write(f"Team A: {list(selected_option['team_a'])}")
+            st.write(f"Team B: {list(selected_option['team_b'])}")
     elif players:
         st.warning("The team size cannot be larger than the number of players.")
 
 st.divider()
 
-if players and len(players) >= team_size:
-    selected_option, _, _ = generate_balanced_teams(players, team_size, history)
-
-    st.subheader("Chosen teams")
-    st.write(f"Team A: {list(selected_option['team_a'])}")
-    st.write(f"Team B: {list(selected_option['team_b'])}")
+if players and len(players) >= team_size and st.session_state.get("generate_teams", False):
+    st.subheader("✅ Chosen teams")
 else:
-    st.info("Add at least one player name to generate teams.")
+    st.info("Enter the players for this week, save results, then generate the teams.")
