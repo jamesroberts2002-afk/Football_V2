@@ -108,14 +108,12 @@ def team_card(title: str, team: list[str]):
     st.markdown(
         f"""
         <div style="
-            border: 1px solid #D9D9D9;
+            border: 1px solid rgba(128,128,128,0.35);
             border-radius: 14px;
-            padding: 16px 18px;
-            background: #FAFAFA;
-            min-height: 180px;
+            padding: 22px 24px;
             text-align: center;
         ">
-            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;">{title}</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px;">{title}</div>
             <div style="font-size: 1.02rem; line-height: 1.7;">{players_html}</div>
         </div>
         """,
