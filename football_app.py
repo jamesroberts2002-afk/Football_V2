@@ -81,6 +81,33 @@ def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[s
     }
 
 
+def summarize_players(history: pd.DataFrame) -> pd.DataFrame:
+    if history.empty:
+        return pd.DataFrame(columns=["Player", "Wins", "Losses", "Games", "Score"])
+
+    players = sorted(history["Player"].dropna().astype(str).unique().tolist())
+    scores = compute_weighted_scores(players, history)
+
+    rows = []
+    for player in players:
+        results = history.loc[history["Player"] == player, "Result"].astype(str).str.upper()
+        wins = int((results == "W").sum())
+        losses = int((results == "L").sum())
+        games = wins + losses
+
+        rows.append(
+            {
+                "Player": player,
+                "Wins": wins,
+                "Losses": losses,
+                "Games": games,
+                "Score": scores.get(player, 0.0),
+            }
+        )
+
+    return pd.DataFrame(rows).sort_values("Score", ascending=False)
+
+
 def generate_balanced_teams(players: list[str], team_size: int, history: pd.DataFrame):
     scores = compute_weighted_scores(players, history)
     all_teams = list(itertools.combinations(players, team_size))
@@ -125,6 +152,12 @@ st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout
 st.title("⚽ Football Team Generator")
 
 history = load_history()
+
+current_year = date.today().year
+history_dates = pd.to_datetime(history["Date"], errors="coerce")
+this_year_history = history[history_dates.dt.year == current_year].copy()
+overall_summary = summarize_players(history)
+yearly_summary = summarize_players(this_year_history)
 
 with st.sidebar:
     st.header("🛠️ Setup")
@@ -191,6 +224,16 @@ with st.sidebar:
 
 st.subheader("📚 History")
 st.dataframe(history, use_container_width=True, height=260)
+
+st.divider()
+
+st.subheader(f"📅 This year players ({current_year})")
+st.dataframe(yearly_summary, use_container_width=True, height=300)
+
+st.divider()
+
+st.subheader("🌍 Overall players")
+st.dataframe(overall_summary, use_container_width=True, height=300)
 
 st.divider()
 
