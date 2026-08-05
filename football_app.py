@@ -83,7 +83,7 @@ def compute_weighted_scores(players: list[str], history: pd.DataFrame) -> dict[s
 
 def summarize_players(history: pd.DataFrame) -> pd.DataFrame:
     if history.empty:
-        return pd.DataFrame(columns=["Player", "Wins", "Losses", "Games", "Score"])
+        return pd.DataFrame(columns=["Player", "Games", "Wins", "Losses", "Score"])
 
     players = sorted(history["Player"].dropna().astype(str).unique().tolist())
     scores = compute_weighted_scores(players, history)
@@ -98,9 +98,9 @@ def summarize_players(history: pd.DataFrame) -> pd.DataFrame:
         rows.append(
             {
                 "Player": player,
+                "Games": games,
                 "Wins": wins,
                 "Losses": losses,
-                "Games": games,
                 "Score": scores.get(player, 0.0),
             }
         )
