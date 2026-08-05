@@ -148,48 +148,46 @@ with st.sidebar:
     st.subheader("📝 Last week results")
     result_date = st.date_input("Date", value=date.today())
 
-    if "results_editor_df" not in st.session_state:
-        st.session_state.results_editor_df = build_result_editor()
+    with st.form("results_form", clear_on_submit=False):
+        result_editor = st.data_editor(
+            build_result_editor(),
+            hide_index=True,
+            use_container_width=True,
+            num_rows="dynamic",
+            column_config={
+                "Player": st.column_config.TextColumn("Player", required=True),
+                "Result": st.column_config.SelectboxColumn(
+                    "Result",
+                    options=["W", "L"],
+                    required=True,
+                ),
+            },
+            key="results_editor_form",
+        )
 
-    result_editor = st.data_editor(
-        st.session_state.results_editor_df,
-        hide_index=True,
-        use_container_width=True,
-        num_rows="dynamic",
-        column_config={
-            "Player": st.column_config.TextColumn("Player", required=True),
-            "Result": st.column_config.SelectboxColumn(
-                "Result",
-                options=["W", "L"],
-                required=True,
-            ),
-        },
-        key="results_editor",
-    )
-    st.session_state.results_editor_df = result_editor
+        submitted = st.form_submit_button("Save results")
 
-    if st.button("Save results"):
-        cleaned = result_editor.copy()
-        cleaned = cleaned.dropna(how="all")
-        cleaned = cleaned[cleaned["Player"].astype(str).str.strip() != ""].copy()
-
-        if cleaned.empty:
-            st.warning("Enter at least one player/result row before saving.")
-        else:
-            cleaned = cleaned[["Player", "Result"]].copy()
-            cleaned["Player"] = cleaned["Player"].astype(str).str.strip()
-            cleaned["Result"] = cleaned["Result"].astype(str).str.upper()
-            cleaned = cleaned[cleaned["Result"].isin(["W", "L"])]
+        if submitted:
+            cleaned = result_editor.copy()
+            cleaned = cleaned.dropna(how="all")
+            cleaned = cleaned[cleaned["Player"].astype(str).str.strip() != ""].copy()
 
             if cleaned.empty:
-                st.warning("No valid W/L rows to save.")
+                st.warning("Enter at least one player/result row before saving.")
             else:
-                cleaned["Date"] = result_date.isoformat()
-                save_results(cleaned)
-                load_history.clear()
-                st.session_state.results_editor_df = build_result_editor()
-                st.success(f"Saved {len(cleaned)} results for {result_date.isoformat()}.")
-                st.rerun()
+                cleaned = cleaned[["Player", "Result"]].copy()
+                cleaned["Player"] = cleaned["Player"].astype(str).str.strip()
+                cleaned["Result"] = cleaned["Result"].astype(str).str.upper()
+                cleaned = cleaned[cleaned["Result"].isin(["W", "L"])]
+
+                if cleaned.empty:
+                    st.warning("No valid W/L rows to save.")
+                else:
+                    cleaned["Date"] = result_date.isoformat()
+                    save_results(cleaned)
+                    load_history.clear()
+                    st.success(f"Saved {len(cleaned)} results for {result_date.isoformat()}.")
+                    st.rerun()
 
 st.subheader("📚 History")
 st.dataframe(history, use_container_width=True, height=260)
