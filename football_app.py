@@ -227,13 +227,14 @@ st.dataframe(history, use_container_width=True, height=260)
 
 st.divider()
 
-st.subheader(f"📅 This year players ({current_year})")
-st.dataframe(yearly_summary, use_container_width=True, height=300)
+summary_col1, summary_col2 = st.columns(2)
+with summary_col1:
+    st.subheader(f"📅 This year players ({current_year})")
+    st.dataframe(yearly_summary, use_container_width=True, height=300)
 
-st.divider()
-
-st.subheader("🌍 Overall players")
-st.dataframe(overall_summary, use_container_width=True, height=300)
+with summary_col2:
+    st.subheader("🌍 Overall players")
+    st.dataframe(overall_summary, use_container_width=True, height=300)
 
 st.divider()
 
