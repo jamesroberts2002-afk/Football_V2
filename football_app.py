@@ -153,11 +153,23 @@ st.title("⚽ Football Team Generator")
 
 history = load_history()
 
-current_year = date.today().year
 history_dates = pd.to_datetime(history["Date"], errors="coerce")
-this_year_history = history[history_dates.dt.year == current_year].copy()
+available_years = sorted(
+    history_dates.dropna().dt.year.unique().tolist(),
+    reverse=True,
+)
+
+selected_year = None
+if available_years:
+    selected_year = st.selectbox("Year", available_years, index=0)
+
+if selected_year is not None:
+    selected_year_history = history[history_dates.dt.year == selected_year].copy()
+else:
+    selected_year_history = pd.DataFrame(columns=["Date", "Player", "Result"])
+
 overall_summary = summarize_players(history)
-yearly_summary = summarize_players(this_year_history)
+yearly_summary = summarize_players(selected_year_history)
 
 with st.sidebar:
     st.header("🛠️ Setup")
@@ -229,7 +241,7 @@ st.divider()
 
 summary_col1, summary_col2 = st.columns(2)
 with summary_col1:
-    st.subheader(f"📅 This year players ({current_year})")
+    st.subheader(f"📅 Players in {selected_year}" if selected_year is not None else "📅 Players by year")
     st.dataframe(yearly_summary, use_container_width=True, height=300)
 
 with summary_col2:
