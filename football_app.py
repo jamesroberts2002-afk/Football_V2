@@ -162,21 +162,24 @@ yearly_summary = summarize_players(this_year_history)
 with st.sidebar:
     st.header("🛠️ Setup")
 
-    player_text = st.text_area(
-        "Players (comma separated)",
-        value=", ".join(DEFAULT_PLAYERS),
-        height=140,
-    )
-    players = parse_players(player_text)
+    with st.form("team_setup_form"):
+        player_text = st.text_area(
+            "Players (comma separated)",
+            value=", ".join(DEFAULT_PLAYERS),
+            height=140,
+        )
+        players = parse_players(player_text)
 
-    max_team_size = max(2, len(players)) if players else 2
-    team_size = st.number_input(
-        "Team size",
-        min_value=2,
-        max_value=max_team_size,
-        value=min(DEFAULT_TEAM_SIZE, max_team_size),
-        step=1,
-    )
+        max_team_size = max(2, len(players)) if players else 2
+        team_size = st.number_input(
+            "Team size",
+            min_value=2,
+            max_value=max_team_size,
+            value=min(DEFAULT_TEAM_SIZE, max_team_size),
+            step=1,
+        )
+
+        generate_clicked = st.form_submit_button("Generate teams")
 
     st.subheader("📝 Last week results")
     result_date = st.date_input("Date", value=date.today())
@@ -245,7 +248,7 @@ elif not players:
 else:
     st.subheader("Generate teams")
 
-    if st.button("Generate teams"):
+    if generate_clicked:
         selected_option, scores = generate_balanced_teams(players, team_size, history)
 
         rankings_col, spacer_col, teams_col = st.columns([1, 0.15, 1.05])
