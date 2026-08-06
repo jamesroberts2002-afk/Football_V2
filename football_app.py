@@ -170,13 +170,19 @@ with st.sidebar:
         )
         players = parse_players(player_text)
 
+        if "team_size" not in st.session_state:
+            st.session_state.team_size = DEFAULT_TEAM_SIZE
+
         max_team_size = max(2, len(players)) if players else 2
+        if st.session_state.team_size > max_team_size:
+            st.session_state.team_size = max_team_size
+
         team_size = st.number_input(
             "Team size",
             min_value=2,
             max_value=max_team_size,
-            value=min(DEFAULT_TEAM_SIZE, max_team_size),
             step=1,
+            key="team_size",
         )
 
         generate_clicked = st.form_submit_button("Generate teams")
