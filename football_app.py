@@ -152,16 +152,21 @@ st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout
 st.title("⚽ Football Team Generator")
 
 history = load_history()
-
 history_dates = pd.to_datetime(history["Date"], errors="coerce")
 available_years = sorted(
     history_dates.dropna().dt.year.unique().tolist(),
     reverse=True,
 )
 
-selected_year = None
 if available_years:
-    selected_year = st.selectbox("Year", available_years, index=0)
+    year_col1, year_col2 = st.columns([0.35, 0.65])
+    with year_col1:
+        selected_year = st.selectbox("Year", available_years, index=0)
+    with year_col2:
+        st.subheader(f"📅 Players in {selected_year}")
+else:
+    selected_year = None
+    st.subheader("📅 Players by year")
 
 if selected_year is not None:
     selected_year_history = history[history_dates.dt.year == selected_year].copy()
@@ -241,12 +246,12 @@ st.divider()
 
 summary_col1, summary_col2 = st.columns(2)
 with summary_col1:
-    st.subheader(f"📅 Players in {selected_year}" if selected_year is not None else "📅 Players by year")
-    st.dataframe(yearly_summary, use_container_width=True, height=300)
-
-with summary_col2:
     st.subheader("🌍 Overall players")
     st.dataframe(overall_summary, use_container_width=True, height=300)
+
+with summary_col2:
+    st.subheader(f"📅 Players in {selected_year}" if selected_year is not None else "📅 Players by year")
+    st.dataframe(yearly_summary, use_container_width=True, height=300)
 
 st.divider()
 
