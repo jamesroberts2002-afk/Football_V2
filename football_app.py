@@ -158,6 +158,12 @@ def team_card(title: str, team: list[str]):
     )
 
 
+def highlight_new_rows(row):
+    if row["Games"] == 0:
+        return ["background-color: #FFF7CC"] * len(row)
+    return [""] * len(row)
+
+
 st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout="wide")
 st.title("⚽ Football Team Generator")
 
@@ -274,7 +280,9 @@ else:
             ranking_df = pd.DataFrame(
                 {"Player": list(scores.keys()), "Score": list(scores.values())}
             ).sort_values("Score", ascending=False)
-            st.dataframe(ranking_df, use_container_width=True, height=360)
+
+            styled_ranking = ranking_df.style.apply(highlight_new_rows, axis=1)
+            st.dataframe(styled_ranking, use_container_width=True, height=360)
 
         with teams_col:
             st.subheader("Chosen teams")
