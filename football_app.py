@@ -6,10 +6,20 @@ import pandas as pd
 import streamlit as st
 from supabase import create_client
 
-DEFAULT_PLAYERS = [
-    "Charlie", "Alasdair", "Joseph", "Dom", "Mo", "Harry", "Louis",
-    "James R", "Ellis", "Kieran", "Jon", "Oliver", "Dan M", "Danny",
-]
+DEFAULT_PLAYERS = """Charlie
+Alasdair
+Joseph
+Dom
+Mo
+Harry
+Louis
+James R
+Ellis
+Kieran
+Jon
+Oliver
+Dan M
+Danny"""
 DEFAULT_TEAM_SIZE = 7
 
 
@@ -49,7 +59,7 @@ def save_results(results_df: pd.DataFrame) -> None:
 
 
 def parse_players(player_text: str) -> list[str]:
-    return [p.strip() for p in player_text.split(",") if p.strip()]
+    return [p.strip() for p in player_text.splitlines() if p.strip()]
 
 
 def build_result_editor() -> pd.DataFrame:
@@ -164,9 +174,9 @@ with st.sidebar:
 
     with st.form("team_setup_form"):
         player_text = st.text_area(
-            "Players (comma separated)",
-            value=", ".join(DEFAULT_PLAYERS),
-            height=140,
+            "Players (one per line)",
+            value=DEFAULT_PLAYERS,
+            height=260,
         )
         players = parse_players(player_text)
 
