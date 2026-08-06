@@ -152,6 +152,7 @@ st.set_page_config(page_title="Football Team Generator", page_icon="⚽", layout
 st.title("⚽ Football Team Generator")
 
 history = load_history()
+
 history_dates = pd.to_datetime(history["Date"], errors="coerce")
 available_years = sorted(
     history_dates.dropna().dt.year.unique().tolist(),
@@ -159,11 +160,11 @@ available_years = sorted(
 )
 
 if available_years:
-    year_col1, year_col2 = st.columns([0.35, 0.65])
+    year_col1, year_col2 = st.columns([0.55, 0.45])
     with year_col1:
-        selected_year = st.selectbox("Year", available_years, index=0)
+        st.subheader("📅 Players by year")
     with year_col2:
-        st.subheader(f"📅 Players in {selected_year}")
+        selected_year = st.selectbox("Year", available_years, index=0, label_visibility="visible")
 else:
     selected_year = None
     st.subheader("📅 Players by year")
