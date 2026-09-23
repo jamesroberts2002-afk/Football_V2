@@ -74,11 +74,15 @@ def save_results(results_df: pd.DataFrame) -> None:
 
 
 def parse_players(player_text: str) -> list[str]:
-    return [
-        player.strip()
-        for player in player_text.splitlines()
-        if player.strip()
-    ]
+    players = []
+
+    for line in player_text.splitlines():
+        player = line.strip()
+
+        if player and player not in players:
+            players.append(player)
+
+    return players
 
 
 def build_result_editor() -> pd.DataFrame:
@@ -192,10 +196,7 @@ def summarize_players(history: pd.DataFrame) -> pd.DataFrame:
                 "Games": games,
                 "Wins": wins,
                 "Losses": losses,
-                "Score": scores.get(
-                    player,
-                    0.0,
-                ),
+                "Score": scores.get(player, 0.0),
             }
         )
 
@@ -268,9 +269,55 @@ def generate_balanced_teams(
         if option["match_rating"] == best_rating
     ]
 
-    chosen = random.choice(best_options)
+    return random.choice(best_options), scores
 
-    return chosen, scores
+
+def build_current_player_rankings(
+    players: list[str],
+    scores: dict[str, float],
+    history: pd.DataFrame,
+) -> pd.DataFrame:
+    rows = []
+
+    for player in players:
+        games = int(
+            (
+                history["Player"] == player
+            ).sum()
+        )
+
+        rows.append(
+            {
+                "Player": player,
+                "Games": games,
+                "Score": scores.get(player, 0.0),
+            }
+        )
+
+    return (
+        pd.DataFrame(rows)
+        .sort_values(
+            "Score",
+            ascending=False,
+        )
+        .reset_index(drop=True)
+    )
+
+
+def highlight_new_rows(df: pd.DataFrame):
+    styles = pd.DataFrame(
+        "",
+        index=df.index,
+        columns=df.columns,
+    )
+
+    if "Games" in df.columns:
+        styles.loc[
+            df["Games"] == 0,
+            :
+        ] = "background-color: #FFF7CC"
+
+    return styles
 
 
 def team_card(title: str, team: list[str]) -> None:
@@ -307,22 +354,6 @@ def team_card(title: str, team: list[str]) -> None:
     )
 
 
-def highlight_new_rows(df: pd.DataFrame) -> pd.DataFrame:
-    styles = pd.DataFrame(
-        "",
-        index=df.index,
-        columns=df.columns,
-    )
-
-    if "Games" in df.columns:
-        styles.loc[
-            df["Games"] == 0,
-            :
-        ] = "background-color: #FFF7CC"
-
-    return styles
-
-
 st.set_page_config(
     page_title="Football Team Generator",
     page_icon="⚽",
@@ -330,6 +361,20 @@ st.set_page_config(
 )
 
 st.title("⚽ Football Team Generator")
+
+
+if "team_size" not in st.session_state:
+    st.session_state.team_size = DEFAULT_TEAM_SIZE
+
+if "generated_result" not in st.session_state:
+    st.session_state.generated_result = None
+
+if "generated_players" not in st.session_state:
+    st.session_state.generated_players = []
+
+if "generated_team_size" not in st.session_state:
+    st.session_state.generated_team_size = None
+
 
 history = load_history()
 
@@ -352,9 +397,6 @@ overall_summary = summarize_players(history)
 
 with st.sidebar:
     st.header("🛠️ Setup")
-
-    if "team_size" not in st.session_state:
-        st.session_state.team_size = DEFAULT_TEAM_SIZE
 
     with st.form("team_setup_form"):
         player_text = st.text_area(
@@ -385,6 +427,23 @@ with st.sidebar:
         generate_clicked = st.form_submit_button(
             "Generate teams"
         )
+
+    if generate_clicked:
+        if not players:
+            st.session_state.generated_result = None
+            st.warning("Enter at least one player.")
+
+        elif len(players) < team_size:
+            st.session_state.generated_result = None
+            st.warning(
+                "The team size cannot be larger "
+                "than the number of players."
+            )
+
+        else:
+            st.session_state.generated_result = True
+            st.session_state.generated_players = players.copy()
+            st.session_state.generated_team_size = team_size
 
     st.subheader("📝 Last week results")
 
@@ -436,7 +495,8 @@ with st.sidebar:
 
             if cleaned.empty:
                 st.warning(
-                    "Enter at least one player/result row before saving."
+                    "Enter at least one player/result row "
+                    "before saving."
                 )
             else:
                 cleaned = cleaned[
@@ -505,12 +565,11 @@ with summary_col1:
         if available_years:
             current_year = date.today().year
 
-            if current_year in available_years:
-                default_year_index = (
-                    available_years.index(current_year)
-                )
-            else:
-                default_year_index = 0
+            default_year_index = (
+                available_years.index(current_year)
+                if current_year in available_years
+                else 0
+            )
 
             selected_year = st.selectbox(
                 "Year",
@@ -553,68 +612,64 @@ with summary_col2:
 st.divider()
 
 
-if not players:
-    st.info(
-        "Enter the players for this week, "
-        "then generate the teams."
+generated_result = st.session_state.generated_result
+generated_players = st.session_state.generated_players
+generated_team_size = st.session_state.generated_team_size
+
+
+if generated_result and generated_players:
+    selected_option, scores = generate_balanced_teams(
+        generated_players,
+        generated_team_size,
+        history,
     )
 
-elif len(players) < team_size:
-    st.warning(
-        "The team size cannot be larger "
-        "than the number of players."
+    rankings_col, spacer_col, teams_col = st.columns(
+        [1, 0.15, 1.05]
     )
+
+    with rankings_col:
+        st.subheader("🏅 Player rankings")
+
+        ranking_df = build_current_player_rankings(
+            generated_players,
+            scores,
+            history,
+        )
+
+        styled_ranking = ranking_df.style.apply(
+            highlight_new_rows,
+            axis=None,
+        )
+
+        st.dataframe(
+            styled_ranking,
+            use_container_width=True,
+            height=360,
+        )
+
+    with teams_col:
+        st.subheader("Chosen teams")
+
+        team_a_col, team_b_col = st.columns(
+            2,
+            gap="small",
+        )
+
+        with team_a_col:
+            team_card(
+                "Team A",
+                list(selected_option["team_a"]),
+            )
+
+        with team_b_col:
+            team_card(
+                "Team B",
+                list(selected_option["team_b"]),
+            )
 
 else:
-    if generate_clicked:
-        selected_option, scores = (
-            generate_balanced_teams(
-                players,
-                team_size,
-                history,
-            )
-        )
-
-        rankings_col, spacer_col, teams_col = st.columns(
-            [1, 0.15, 1.05]
-        )
-
-        with rankings_col:
-            st.subheader("🏅 Player rankings")
-
-            ranking_df = summarize_players(
-                history[
-                    history["Player"].isin(players)
-                ]
-            )
-
-            styled_ranking = ranking_df.style.apply(
-                highlight_new_rows,
-                axis=None,
-            )
-
-            st.dataframe(
-                styled_ranking,
-                use_container_width=True,
-                height=360,
-            )
-
-        with teams_col:
-            st.subheader("Chosen teams")
-
-            team_a_col, team_b_col = st.columns(
-                2,
-                gap="small",
-            )
-
-            with team_a_col:
-                team_card(
-                    "Team A",
-                    list(selected_option["team_a"]),
-                )
-
-            with team_b_col:
-                team_card(
-                    "Team B",
-                    list(selected_option["team_b"]),
-                )
+    st.info(
+        "Enter the players in the sidebar "
+        "and click Generate teams."
+    )
