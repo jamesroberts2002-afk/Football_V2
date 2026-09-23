@@ -269,7 +269,9 @@ def generate_balanced_teams(
         if option["match_rating"] == best_rating
     ]
 
-    return random.choice(best_options), scores
+    selected_option = random.choice(best_options)
+
+    return selected_option, scores
 
 
 def build_current_player_rankings(
@@ -326,30 +328,32 @@ def team_card(title: str, team: list[str]) -> None:
         for player in team
     )
 
-    st.markdown(
-        f"""
-        <div style="
-            border: 1px solid rgba(128, 128, 128, 0.35);
-            border-radius: 14px;
-            padding: 22px 24px;
-            text-align: center;
-        ">
-            <div style="
-                font-size: 1.15rem;
-                font-weight: 700;
-                margin-bottom: 12px;
-            ">
-                {escape(title)}
-            </div>
+    card_html = f"""
+<div style="
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 14px;
+    padding: 22px 24px;
+    text-align: center;
+">
+    <div style="
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    ">
+        {escape(title)}
+    </div>
 
-            <div style="
-                font-size: 1.02rem;
-                line-height: 1.7;
-            ">
-                {players_html}
-            </div>
-        </div>
-        """,
+    <div style="
+        font-size: 1.02rem;
+        line-height: 1.7;
+    ">
+        {players_html}
+    </div>
+</div>
+"""
+
+    st.markdown(
+        card_html,
         unsafe_allow_html=True,
     )
 
@@ -366,8 +370,8 @@ st.title("⚽ Football Team Generator")
 if "team_size" not in st.session_state:
     st.session_state.team_size = DEFAULT_TEAM_SIZE
 
-if "generated_result" not in st.session_state:
-    st.session_state.generated_result = None
+if "generated_selection" not in st.session_state:
+    st.session_state.generated_selection = None
 
 if "generated_players" not in st.session_state:
     st.session_state.generated_players = []
@@ -430,18 +434,24 @@ with st.sidebar:
 
     if generate_clicked:
         if not players:
-            st.session_state.generated_result = None
+            st.session_state.generated_selection = None
             st.warning("Enter at least one player.")
 
         elif len(players) < team_size:
-            st.session_state.generated_result = None
+            st.session_state.generated_selection = None
             st.warning(
                 "The team size cannot be larger "
                 "than the number of players."
             )
 
         else:
-            st.session_state.generated_result = True
+            selected_option, scores = generate_balanced_teams(
+                players,
+                team_size,
+                history,
+            )
+
+            st.session_state.generated_selection = selected_option
             st.session_state.generated_players = players.copy()
             st.session_state.generated_team_size = team_size
 
@@ -612,15 +622,13 @@ with summary_col2:
 st.divider()
 
 
-generated_result = st.session_state.generated_result
+selected_option = st.session_state.generated_selection
 generated_players = st.session_state.generated_players
-generated_team_size = st.session_state.generated_team_size
 
 
-if generated_result and generated_players:
-    selected_option, scores = generate_balanced_teams(
+if selected_option is not None and generated_players:
+    scores = compute_weighted_scores(
         generated_players,
-        generated_team_size,
         history,
     )
 
