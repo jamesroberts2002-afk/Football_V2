@@ -323,6 +323,8 @@ def highlight_new_rows(df: pd.DataFrame):
 
 
 def team_card(title: str, team: list[str]) -> None:
+    safe_title = escape(title)
+
     players_html = "<br>".join(
         escape(player)
         for player in team
@@ -334,13 +336,14 @@ def team_card(title: str, team: list[str]) -> None:
     border-radius: 14px;
     padding: 22px 24px;
     text-align: center;
+    margin-bottom: 12px;
 ">
     <div style="
         font-size: 1.15rem;
         font-weight: 700;
         margin-bottom: 12px;
     ">
-        {escape(title)}
+        {safe_title}
     </div>
 
     <div style="
@@ -352,10 +355,7 @@ def team_card(title: str, team: list[str]) -> None:
 </div>
 """
 
-    st.markdown(
-        card_html,
-        unsafe_allow_html=True,
-    )
+    st.html(card_html)
 
 
 st.set_page_config(
@@ -375,9 +375,6 @@ if "generated_selection" not in st.session_state:
 
 if "generated_players" not in st.session_state:
     st.session_state.generated_players = []
-
-if "generated_team_size" not in st.session_state:
-    st.session_state.generated_team_size = None
 
 
 history = load_history()
@@ -435,10 +432,16 @@ with st.sidebar:
     if generate_clicked:
         if not players:
             st.session_state.generated_selection = None
-            st.warning("Enter at least one player.")
+            st.session_state.generated_players = []
+
+            st.warning(
+                "Enter at least one player."
+            )
 
         elif len(players) < team_size:
             st.session_state.generated_selection = None
+            st.session_state.generated_players = []
+
             st.warning(
                 "The team size cannot be larger "
                 "than the number of players."
@@ -453,7 +456,6 @@ with st.sidebar:
 
             st.session_state.generated_selection = selected_option
             st.session_state.generated_players = players.copy()
-            st.session_state.generated_team_size = team_size
 
     st.subheader("📝 Last week results")
 
